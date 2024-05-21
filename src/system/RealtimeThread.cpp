@@ -112,6 +112,26 @@ void RealtimeThread::elevateToRealTimePriority(std::thread::native_handle_type t
 #endif
 }
 
+#if defined(HAVE_ANDROID_PTHREAD_SETNAME_NP)
+void setThreadName(const char* name) {
+    char buf[16]; // MAX_TASK_COMM_LEN=16 is hard-coded into bionic
+    strncpy(buf, name, sizeof(buf) - 1);
+    buf[sizeof(buf) - 1] = '\0';
+    int err = pthread_setname_np(pthread_self(), buf);
+    if (err != 0) {
+        std::cerr << "Unable to set the name of current thread to '" << buf << "': " << strerror(err) << std::endl;
+    }
+}
+#elif defined(HAVE_PRCTL)
+void setThreadName(const char* name) {
+    prctl(PR_SET_NAME, (unsigned long)name, 0, 0, 0);
+}
+#else
+void setThreadName(const char* name) {
+    std::cout << "No way to set current thread's name (" << name << ")" << std::endl;
+}
+#endif
+
 bool RealtimeThread::shouldExit() {
     return m_should_exit;
 }
