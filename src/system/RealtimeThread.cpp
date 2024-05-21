@@ -2,7 +2,7 @@
 
 namespace anira {
 
-RealtimeThread::RealtimeThread() : m_should_exit(false){
+RealtimeThread::RealtimeThread() : m_should_exit(false) {
 }
 
 RealtimeThread::~RealtimeThread() {
@@ -11,7 +11,7 @@ RealtimeThread::~RealtimeThread() {
 
 void RealtimeThread::start() {
     m_should_exit = false;
-    #if __linux__
+    #if __linux__ && !defined(__ANDROID__)
         pthread_attr_t thread_attr;
         pthread_attr_init(&thread_attr);
         pthread_attr_setinheritsched(&thread_attr, PTHREAD_EXPLICIT_SCHED);
@@ -20,7 +20,7 @@ void RealtimeThread::start() {
 
     thread = std::thread(&RealtimeThread::run, this);
 
-    #if __linux__
+    #if __linux__ && !defined(__ANDROID__)
         pthread_attr_destroy(&thread_attr);
     #endif
 
