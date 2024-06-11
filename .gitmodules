@@ -1,0 +1,3 @@
+[submodule "prebuiltlibs"]
+	path = prebuiltlibs
+	url = https://github.com/nickpourazima/prebuiltlibs.git

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
+set(LIBTENSORFLOWLITE_VERSION 2.16.1)
 # ==============================================================================
 # Define the options for the anira library
 # ==============================================================================
@@ -27,16 +28,27 @@ set (PROJECT_NAME anira)
 
 project (${PROJECT_NAME} VERSION 0.1.3)
 
-# Sets the minimum macOS version, c++20 is only available from macOS 11.0
-if (APPLE)
-	set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum version of the target platform" FORCE) 
-	if(CMAKE_OSX_DEPLOYMENT_TARGET)
-		message("The minimum macOS version is set to " $CACHE{CMAKE_OSX_DEPLOYMENT_TARGET}.)
-	endif()
-    if (NOT (CMAKE_OSX_ARCHITECTURES STREQUAL "arm64" OR CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64" OR CMAKE_OSX_ARCHITECTURES STREQUAL ""))
+# Android-specific settings
+if(ANDROID)
+    set(CMAKE_SYSTEM_NAME Android)
+    set(CMAKE_ANDROID_ARCH_ABI ${ANDROID_ABI})
+    set(CMAKE_ANDROID_NDK ${ANDROID_NDK_HOME})
+    set(CMAKE_SYSTEM_VERSION ${ANDROID_PLATFORM})
+    set(CMAKE_ANDROID_STL_TYPE c++_shared)
+    set(ANIRA_WITH_LIBTORCH OFF)
+    set(ANIRA_WITH_ONNXRUNTIME OFF)
+endif()
+
+# Additional setup for macOS
+if(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum version of the target platform" FORCE)
+    if(CMAKE_OSX_DEPLOYMENT_TARGET)
+        message("The minimum macOS version is set to " $CACHE{CMAKE_OSX_DEPLOYMENT_TARGET}.)
+    endif()
+    if(NOT (CMAKE_OSX_ARCHITECTURES STREQUAL "arm64" OR CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64" OR CMAKE_OSX_ARCHITECTURES STREQUAL ""))
         message(FATAL_ERROR "The macOS architectures must be set to either 'arm64', 'x86_64', or an empty string. Universal binaries are not supported, because the inference engines do not support them. Please set the CMAKE_OSX_ARCHITECTURES variable to either 'arm64', 'x86_64', or leave it empty.")
     endif()
-endif ()
+endif()
 
 # Sets the cpp language minimum, 20 because of new semaphore types
 set(CMAKE_CXX_STANDARD 20)
@@ -56,6 +68,7 @@ set(BACKEND_SOURCES)
 set(BACKEND_BUILD_HEADER_DIRS)
 set(BACKEND_BUILD_LIBRARY_DIRS)
 
+# Include setup scripts and append sources
 if(ANIRA_WITH_LIBTORCH)
     include(cmake/SetupLibTorch.cmake)
     list(APPEND BACKEND_SOURCES src/backends/LibTorchProcessor.cpp)
