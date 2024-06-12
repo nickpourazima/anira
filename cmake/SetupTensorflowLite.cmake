@@ -1,5 +1,17 @@
 set(LIBTENSORFLOWLITE_VERSION 2.16.1)
 
+# Enable building an installable package
+set(TFLITE_ENABLE_INSTALL ON CACHE BOOL "Enable building an installable package")
+set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON CACHE BOOL "Prefer config mode for find_package")
+set(TFLITE_KERNEL_TEST OFF CACHE BOOL "Disable TensorFlow Lite kernel tests")
+
+# Enable only the XNNPACK delegate
+set(TFLITE_ENABLE_RUY OFF CACHE BOOL "Disable RUY delegate")
+set(TFLITE_ENABLE_NNAPI OFF CACHE BOOL "Disable NNAPI delegate")
+set(TFLITE_ENABLE_GPU OFF CACHE BOOL "Disable GPU delegate")
+set(TFLITE_ENABLE_XNNPACK ON CACHE BOOL "Enable XNNPACK delegate")
+set(TFLITE_ENABLE_MMAP ON CACHE BOOL "Enable MMAP")
+
 option(TENSORFLOWLITE_ROOTDIR "tensorflowlite root dir")
 set(TENSORFLOWLITE_DIR_NAME "tensorflowlite-${LIBTENSORFLOWLITE_VERSION}")
 set(TENSORFLOWLITE_ROOTDIR ${CMAKE_CURRENT_SOURCE_DIR}/modules/${TENSORFLOWLITE_DIR_NAME})

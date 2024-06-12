@@ -187,8 +187,8 @@ if(ANIRA_WITH_TFLITE)
     if(ANDROID)
        # Find the req libraries
        find_library(LOG_LIB log)
-       find_library(XNNPACK_LIB xnnpack)
-       find_library(PTHREAD_LIB pthread)
+       find_library(PTHREAD_LIB NAMES pthread)
+       find_library(XNNPACK_LIB NAMES xnnpack)
         # Link against the Android logging library and other necessary libraries
         target_link_libraries(${PROJECT_NAME}
             PRIVATE
