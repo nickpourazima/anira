@@ -184,6 +184,20 @@ endif()
 
 if(ANIRA_WITH_TFLITE)
     target_link_libraries(${PROJECT_NAME} PRIVATE tensorflowlite_c)
+    if(ANDROID)
+       # Find the req libraries
+       find_library(LOG_LIB log)
+       find_library(XNNPACK_LIB xnnpack)
+       find_library(PTHREAD_LIB pthread)
+        # Link against the Android logging library and other necessary libraries
+        target_link_libraries(${PROJECT_NAME}
+            PRIVATE
+            ${LOG_LIB}  # Link against Android log library
+            # Add other necessary libraries here, for example:
+            ${XNNPACK_LIB}
+            ${PTHREAD_LIB}
+        )
+    endif()
 endif()
 
 if(ANIRA_WITH_BENCHMARK)
