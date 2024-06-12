@@ -77,7 +77,7 @@ endif()
 
 # Set the TensorFlow Lite library to link with and adjust include path for Android
 if(ANDROID)
-    set(TFLITE_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/prebuiltlibs/${ANDROID_ABI}/libtensorflow-lite.a)
+    set(TFLITE_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/prebuiltlibs/${ANDROID_ABI}/libtensorflowlite_c.a)
     list(APPEND BACKEND_BUILD_HEADER_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/prebuiltlibs/include")
     list(APPEND BACKEND_BUILD_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/prebuiltlibs/${ANDROID_ABI}")
 else()
