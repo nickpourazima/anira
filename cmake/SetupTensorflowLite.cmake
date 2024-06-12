@@ -75,16 +75,13 @@ if(hasParent)
     set(ANIRA_TENSORFLOWLITE_SHARED_LIB_PATH "${ANIRA_TENSORFLOWLITE_SHARED_LIB_PATH}" PARENT_SCOPE)
 endif()
 
-list(APPEND BACKEND_BUILD_HEADER_DIRS "${TENSORFLOWLITE_ROOTDIR}/include")
-list(APPEND BACKEND_BUILD_LIBRARY_DIRS "${TENSORFLOWLITE_ROOTDIR}/lib")
-
-# Set the TensorFlow Lite library to link with
+# Set the TensorFlow Lite library to link with and adjust include path for Android
 if(ANDROID)
     set(TFLITE_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/prebuiltlibs/${ANDROID_ABI}/libtensorflow-lite.a)
-elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-    set(TFLITE_LIBRARY ${TENSORFLOWLITE_ROOTDIR}/lib/libtensorflowlite_c.so)
-elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm")
-    set(TFLITE_LIBRARY ${TENSORFLOWLITE_ROOTDIR}/lib/libtensorflowlite_c.so)
+    list(APPEND BACKEND_BUILD_HEADER_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/prebuiltlibs/include")
+    list(APPEND BACKEND_BUILD_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/prebuiltlibs/${ANDROID_ABI}")
 else()
     set(TFLITE_LIBRARY ${TENSORFLOWLITE_ROOTDIR}/lib/libtensorflowlite_c.so)
+    list(APPEND BACKEND_BUILD_HEADER_DIRS "${TENSORFLOWLITE_ROOTDIR}/include")
+    list(APPEND BACKEND_BUILD_LIBRARY_DIRS "${TENSORFLOWLITE_ROOTDIR}/lib")
 endif()
