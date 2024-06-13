@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 set(LIBTENSORFLOWLITE_VERSION 2.16.1)
+
 # ==============================================================================
 # Define the options for the anira library
 # ==============================================================================
@@ -37,15 +38,24 @@ if(ANDROID)
     set(CMAKE_ANDROID_STL_TYPE c++_shared)
     set(ANIRA_WITH_LIBTORCH OFF)
     set(ANIRA_WITH_ONNXRUNTIME OFF)
+    set(TENSORFLOW_SOURCE_DIR "" CACHE PATH "Directory that contains the TensorFlow project")
+
+    if(NOT TENSORFLOW_SOURCE_DIR)
+        get_filename_component(TENSORFLOW_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../../" ABSOLUTE)
+    endif()
+
+    add_subdirectory("${TENSORFLOW_SOURCE_DIR}/tensorflow/lite" "${CMAKE_CURRENT_BINARY_DIR}/tensorflow-lite" EXCLUDE_FROM_ALL)
 endif()
 
 # Additional setup for macOS
 if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum version of the target platform" FORCE)
+
     if(CMAKE_OSX_DEPLOYMENT_TARGET)
         message("The minimum macOS version is set to " $CACHE{CMAKE_OSX_DEPLOYMENT_TARGET}.)
     endif()
-    if(NOT (CMAKE_OSX_ARCHITECTURES STREQUAL "arm64" OR CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64" OR CMAKE_OSX_ARCHITECTURES STREQUAL ""))
+
+    if(NOT(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64" OR CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64" OR CMAKE_OSX_ARCHITECTURES STREQUAL ""))
         message(FATAL_ERROR "The macOS architectures must be set to either 'arm64', 'x86_64', or an empty string. Universal binaries are not supported, because the inference engines do not support them. Please set the CMAKE_OSX_ARCHITECTURES variable to either 'arm64', 'x86_64', or leave it empty.")
     endif()
 endif()
@@ -57,7 +67,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # ==============================================================================
 # Download and install the selected inference engines
 # ==============================================================================
-
 if(NOT ANIRA_WITH_LIBTORCH AND NOT ANIRA_WITH_ONNXRUNTIME AND NOT ANIRA_WITH_TFLITE)
     message(FATAL_ERROR "No backend selected. Please select at least one backend by setting one of the following options to ON: ANIRA_WITH_LIBTORCH, ANIRA_WITH_ONNXRUNTIME, or ANIRA_WITH_TFLITE. For example, add '-DANIRA_WITH_LIBTORCH=ON' to your CMake command line.")
 endif()
@@ -150,6 +159,7 @@ endforeach()
 
 target_compile_definitions(${PROJECT_NAME}
     PUBLIC
+
     # Backend-specific definitions
     $<$<BOOL:${ANIRA_WITH_LIBTORCH}>:USE_LIBTORCH>
     $<$<BOOL:${ANIRA_WITH_ONNXRUNTIME}>:USE_ONNXRUNTIME>
@@ -183,20 +193,24 @@ if(ANIRA_WITH_ONNXRUNTIME)
 endif()
 
 if(ANIRA_WITH_TFLITE)
-    target_link_libraries(${PROJECT_NAME} PRIVATE tensorflowlite_c)
     if(ANDROID)
-       # Find the req libraries
-       find_library(LOG_LIB log)
-       find_library(PTHREAD_LIB NAMES pthread)
-       find_library(XNNPACK_LIB NAMES xnnpack)
+        # Find the req libraries
+        # find_library(LOG_LIB log)
+        # find_library(PTHREAD_LIB NAMES pthread)
+        # find_library(XNNPACK_LIB NAMES xnnpack)
+
         # Link against the Android logging library and other necessary libraries
         target_link_libraries(${PROJECT_NAME}
             PRIVATE
-            ${LOG_LIB}  # Link against Android log library
-            # Add other necessary libraries here, for example:
-            ${XNNPACK_LIB}
-            ${PTHREAD_LIB}
+            # ${LOG_LIB} # Link against Android log library
+
+            # # Add other necessary libraries here, for example:
+            # ${XNNPACK_LIB}
+            # ${PTHREAD_LIB}
+            tensorflow-lite
         )
+    else()
+        target_link_libraries(${PROJECT_NAME} PRIVATE tensorflowlite_c)
     endif()
 endif()
 
@@ -207,7 +221,6 @@ endif()
 # ==============================================================================
 # Add install targets for the library
 # ==============================================================================
-
 if(ANIRA_WITH_INSTALL)
     include(cmake/install.cmake)
 endif()
@@ -215,8 +228,7 @@ endif()
 # ==============================================================================
 # Add support for MSVC
 # ==============================================================================
-
-if (MSVC)
+if(MSVC)
     include(cmake/msvc-support.cmake)
 endif()
 
