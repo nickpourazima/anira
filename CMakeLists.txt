@@ -38,13 +38,6 @@ if(ANDROID)
     set(CMAKE_ANDROID_STL_TYPE c++_shared)
     set(ANIRA_WITH_LIBTORCH OFF)
     set(ANIRA_WITH_ONNXRUNTIME OFF)
-    set(TENSORFLOW_SOURCE_DIR "" CACHE PATH "Directory that contains the TensorFlow project")
-
-    if(NOT TENSORFLOW_SOURCE_DIR)
-        get_filename_component(TENSORFLOW_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../../" ABSOLUTE)
-    endif()
-
-    add_subdirectory("${TENSORFLOW_SOURCE_DIR}/tensorflow/lite" "${CMAKE_CURRENT_BINARY_DIR}/tensorflow-lite" EXCLUDE_FROM_ALL)
 endif()
 
 # Additional setup for macOS
@@ -88,8 +81,16 @@ if(ANIRA_WITH_ONNXRUNTIME)
     list(APPEND BACKEND_SOURCES src/backends/OnnxRuntimeProcessor.cpp)
 endif()
 
+# ==============================================================================
+# TensorFlow Lite Setup
+# ==============================================================================
 if(ANIRA_WITH_TFLITE)
-    include(cmake/SetupTensorflowLite.cmake)
+    # Use the TensorFlow Lite from the third-party directory
+    if(NOT TARGET tflite)
+        # Assuming the tflite target is defined in your third-party setup
+        message(FATAL_ERROR "tflite target not found. Make sure to include the third-party CMakeLists.txt before this one.")
+    endif()
+
     list(APPEND BACKEND_SOURCES src/backends/TFLiteProcessor.cpp)
 endif()
 
@@ -193,25 +194,7 @@ if(ANIRA_WITH_ONNXRUNTIME)
 endif()
 
 if(ANIRA_WITH_TFLITE)
-    if(ANDROID)
-        # Find the req libraries
-        # find_library(LOG_LIB log)
-        # find_library(PTHREAD_LIB NAMES pthread)
-        # find_library(XNNPACK_LIB NAMES xnnpack)
-
-        # Link against the Android logging library and other necessary libraries
-        target_link_libraries(${PROJECT_NAME}
-            PRIVATE
-            # ${LOG_LIB} # Link against Android log library
-
-            # # Add other necessary libraries here, for example:
-            # ${XNNPACK_LIB}
-            # ${PTHREAD_LIB}
-            tensorflow-lite
-        )
-    else()
-        target_link_libraries(${PROJECT_NAME} PRIVATE tensorflowlite_c)
-    endif()
+    target_link_libraries(${PROJECT_NAME} PRIVATE tflite)
 endif()
 
 if(ANIRA_WITH_BENCHMARK)
