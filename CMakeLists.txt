@@ -85,13 +85,17 @@ endif()
 # TensorFlow Lite Setup
 # ==============================================================================
 if(ANIRA_WITH_TFLITE)
-    # Use the TensorFlow Lite from the third-party directory
-    if(NOT TARGET tflite)
-        # Assuming the tflite target is defined in your third-party setup
-        message(FATAL_ERROR "tflite target not found. Make sure to include the third-party CMakeLists.txt before this one.")
+    if(TARGET tflite)
+        # Use the existing tflite target
+        list(APPEND BACKEND_SOURCES src/backends/TFLiteProcessor.cpp)
+    elseif(TFLITE_FOUND)
+        # Create a custom target for TFLite
+        add_library(tflite INTERFACE)
+        target_include_directories(tflite INTERFACE ${TFLITE_INCLUDE_DIRS})
+        list(APPEND BACKEND_SOURCES src/backends/TFLiteProcessor.cpp)
+    else()
+        message(FATAL_ERROR "TensorFlow Lite not found. Make sure to include the third-party CMakeLists.txt before this one or provide TFLITE_FOUND and TFLITE_INCLUDE_DIRS.")
     endif()
-
-    list(APPEND BACKEND_SOURCES src/backends/TFLiteProcessor.cpp)
 endif()
 
 if(ANIRA_WITH_SEMAPHORE)
