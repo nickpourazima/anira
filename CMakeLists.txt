@@ -85,16 +85,19 @@ endif()
 # TensorFlow Lite Setup
 # ==============================================================================
 if(ANIRA_WITH_TFLITE)
-    if(TARGET tflite)
-        # Use the existing tflite target
+    if(TFLITE_FOUND)
+        message(STATUS "Using provided TensorFlow Lite")
         list(APPEND BACKEND_SOURCES src/backends/TFLiteProcessor.cpp)
-    elseif(TFLITE_FOUND)
-        # Create a custom target for TFLite
-        add_library(tflite INTERFACE)
-        target_include_directories(tflite INTERFACE ${TFLITE_INCLUDE_DIRS})
+        if(NOT TARGET tflite)
+            add_library(tflite INTERFACE)
+            target_include_directories(tflite INTERFACE ${TFLITE_INCLUDE_DIRS})
+        endif()
+    elseif(EXISTS "${ANIRA_TFLITE_DIR}")
+        message(STATUS "Using TensorFlow Lite from: ${ANIRA_TFLITE_DIR}")
+        add_subdirectory(${ANIRA_TFLITE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/tflite)
         list(APPEND BACKEND_SOURCES src/backends/TFLiteProcessor.cpp)
     else()
-        message(FATAL_ERROR "TensorFlow Lite not found. Make sure to include the third-party CMakeLists.txt before this one or provide TFLITE_FOUND and TFLITE_INCLUDE_DIRS.")
+        message(FATAL_ERROR "TensorFlow Lite not found. Set TFLITE_FOUND and TFLITE_INCLUDE_DIRS, or provide ANIRA_TFLITE_DIR.")
     endif()
 endif()
 
@@ -198,7 +201,7 @@ if(ANIRA_WITH_ONNXRUNTIME)
 endif()
 
 if(ANIRA_WITH_TFLITE)
-    target_link_libraries(${PROJECT_NAME} PRIVATE tflite)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${TFLITE_LIBRARIES})
 endif()
 
 if(ANIRA_WITH_BENCHMARK)
