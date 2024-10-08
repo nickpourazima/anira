@@ -2,6 +2,14 @@ cmake_minimum_required(VERSION 3.15)
 
 set(LIBTENSORFLOWLITE_VERSION 2.16.1)
 
+# Define the path to TensorFlow Lite artifacts
+set(TFLITE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/tensorflow_lite")
+
+# Set TensorFlow Lite variables
+set(TFLITE_FOUND TRUE)
+set(TFLITE_INCLUDE_DIRS "${TFLITE_ROOT}/include")
+set(TFLITE_LIBRARIES "${TFLITE_ROOT}/lib/libtensorflowlite_c.so")
+
 # ==============================================================================
 # Define the options for the anira library
 # ==============================================================================
@@ -85,25 +93,16 @@ endif()
 # TensorFlow Lite Setup
 # ==============================================================================
 if(ANIRA_WITH_TFLITE)
-    message(STATUS "Anira: TFLITE_FOUND = ${TFLITE_FOUND}")
-    message(STATUS "Anira: TFLITE_INCLUDE_DIRS = ${TFLITE_INCLUDE_DIRS}")
-    message(STATUS "Anira: TFLITE_LIBRARIES = ${TFLITE_LIBRARIES}")
-    message(STATUS "Anira: ANIRA_TFLITE_DIR = ${ANIRA_TFLITE_DIR}")
+    message(STATUS "Anira: Using TensorFlow Lite from: ${TFLITE_ROOT}")
+    list(APPEND BACKEND_SOURCES src/backends/TFLiteProcessor.cpp)
 
-    if(TFLITE_FOUND)
-        message(STATUS "Anira: Using provided TensorFlow Lite")
-        list(APPEND BACKEND_SOURCES src/backends/TFLiteProcessor.cpp)
-        if(NOT TARGET tflite)
-            add_library(tflite INTERFACE)
-            target_include_directories(tflite INTERFACE ${TFLITE_INCLUDE_DIRS})
-            target_link_libraries(tflite INTERFACE ${TFLITE_LIBRARIES})
-        endif()
-    elseif(EXISTS "${ANIRA_TFLITE_DIR}")
-        message(STATUS "Anira: Using TensorFlow Lite from: ${ANIRA_TFLITE_DIR}")
-        add_subdirectory(${ANIRA_TFLITE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/tflite)
-        list(APPEND BACKEND_SOURCES src/backends/TFLiteProcessor.cpp)
-    else()
-        message(FATAL_ERROR "Anira: TensorFlow Lite not found. Set TFLITE_FOUND and TFLITE_INCLUDE_DIRS, or provide ANIRA_TFLITE_DIR.")
+    # Create an imported target for TensorFlow Lite
+    if(NOT TARGET tflite)
+        add_library(tflite SHARED IMPORTED)
+        set_target_properties(tflite PROPERTIES
+            IMPORTED_LOCATION "${TFLITE_LIBRARIES}"
+            INTERFACE_INCLUDE_DIRECTORIES "${TFLITE_INCLUDE_DIRS}"
+        )
     endif()
 endif()
 
